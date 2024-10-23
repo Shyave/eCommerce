@@ -17,6 +17,10 @@ const AuthLogin = () => {
     const { toast } = useToast();
     const navigate = useNavigate();
 
+    const isFormValid = () => {
+        return Object.keys(formData).map((key) => formData[key] !== '').every(item => item);
+    }
+
     const onSubmit = (e) => {
         e.preventDefault();
         dispatch(loginUser(formData)).then((data) => {
@@ -42,7 +46,7 @@ const AuthLogin = () => {
                     <Link className="font-medium text-primary hover:underline" to="/auth/register">here</Link> to Register
                 </p>
             </div>
-            <CommonForm formControls={loginFormControls} buttonText={'Sign In'} formData={formData} setFormData={setFormData} onSubmit={onSubmit}></CommonForm>
+            <CommonForm formControls={loginFormControls} buttonText={'Sign In'} formData={formData} setFormData={setFormData} onSubmit={onSubmit} buttonEnable={isFormValid()} ></CommonForm>
         </div>
     )
 }

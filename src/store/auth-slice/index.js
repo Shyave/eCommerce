@@ -22,6 +22,13 @@ export const loginUser = createAsyncThunk('/auth/login',
     }
 )
 
+export const logOutUser = createAsyncThunk('/auth/logout', 
+    async(formData) => {
+        const response = await axios.post(`${URI}logout`, formData, { withCredentials: true })
+        return response.data
+    }
+)
+
 export const checkAuth = createAsyncThunk('/auth/checkAuth', 
     async(formData) => {
         const response = await axios.get(`${URI}check-auth`, 
@@ -47,7 +54,8 @@ const authSlice = createSlice({
         builder
             .addCase(registerUser.pending, (state) => {
                 state.isLoading = true;
-            }).addCase(registerUser.fulfilled, (state) => {
+            })
+            .addCase(registerUser.fulfilled, (state) => {
                 state.isLoading = false;
                 state.user = null;
                 state.isAuthenticated = false;
@@ -59,7 +67,8 @@ const authSlice = createSlice({
             })
             .addCase(loginUser.pending, (state) => {
                 state.isLoading = true;
-            }).addCase(loginUser.fulfilled, (state, action) => {
+            })
+            .addCase(loginUser.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.user = action.payload.success ? action.payload.user : null;
                 state.isAuthenticated = action.payload.success;
@@ -71,12 +80,18 @@ const authSlice = createSlice({
             })
             .addCase(checkAuth.pending, (state) => {
                 state.isLoading = true;
-            }).addCase(checkAuth.fulfilled, (state, action) => {
+            })
+            .addCase(checkAuth.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.user = action.payload.success ? action.payload.user : null;
                 state.isAuthenticated = action.payload.success;
             })
             .addCase(checkAuth.rejected, (state) => {
+                state.isLoading = false;
+                state.user = null;
+                state.isAuthenticated = false;
+            })
+            .addCase(logOutUser.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.user = null;
                 state.isAuthenticated = false;

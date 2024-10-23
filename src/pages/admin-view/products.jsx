@@ -5,7 +5,7 @@ import { addProductFormElements } from "@/config";
 import CommonForm from "@/components/common/form";
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import { useDispatch, useSelector } from "react-redux";
-import { addNewProduct, editProduct, fetchAllProducts } from "@/store/admin/products-slice";
+import { addNewProduct, deleteProduct, editProduct, fetchAllProducts } from "@/store/admin/products-slice";
 import { useToast } from "@/hooks/use-toast";
 import AdminProductTile from "@/components/admin-view/product-tile";
 
@@ -16,7 +16,7 @@ const initialFormData = {
     category: '',
     brand: '',
     price: '',
-    salesPrice: '',
+    salePrice: '',
     totalStock: ''
 }
 
@@ -34,6 +34,10 @@ const AdminProducts = () => {
     useEffect(() => {
         dispatch(fetchAllProducts())
     }, [dispatch]);
+
+    useEffect(() => {
+        formData['image'] = uploadedImageUrl;
+    }, [uploadedImageUrl]);
 
     const onSubmit = (e) => {
         e.preventDefault();
@@ -65,7 +69,27 @@ const AdminProducts = () => {
                 }
             });
         }
+    }
+    
+    const isFormValid = () => {
+        return Object.keys(formData).map((key) => formData[key] !== '').every(item => item);
+    }
 
+    const handleDeleteProduct = (getCurrentProdId) => {
+        dispatch(deleteProduct(getCurrentProdId))
+            .then((data) => {
+                if (data?.payload?.success) {
+                    dispatch(fetchAllProducts())
+                    toast({
+                        title: "Product deleted successfully!"
+                    })
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: "Unable to delete product due to some error"
+                    })
+                }
+            })
     }
 
     return (
@@ -78,7 +102,7 @@ const AdminProducts = () => {
             <div className="grid gap-4 md:grid-cols-3 lg:grid-4">
                 {
                     productList && productList?.data?.length ? productList?.data?.map((productItem) => {
-                        return <AdminProductTile key={productItem._id} setCurrentEditedId={setCurrentEditedId} setOpenCreateProductDialogue={setOpenCreateProductDialogue} setFormData={setFormData} product={productItem} />
+                        return <AdminProductTile key={productItem._id} setCurrentEditedId={setCurrentEditedId} setOpenCreateProductDialogue={setOpenCreateProductDialogue} setFormData={setFormData} product={productItem} handleDeleteProduct={handleDeleteProduct} />
                     }) : <div>No Products found! Click 'Add New Product' to add one</div>
                 }
             </div>
@@ -94,7 +118,7 @@ const AdminProducts = () => {
                     <SheetDescription>
                         <ProductImageUpload imageFile={imageFile} setImageFile={setImageFile} uploadedImageUrl={uploadedImageUrl} setUploadedImageUrl={setUploadedImageUrl} imageLoadingState={imageLoadingState} setImageLoadingState={setImageLoadingState} isEditMode={currentEditedId !== null} productItem={formData} ></ProductImageUpload>
                         <div className="py-6">
-                            <CommonForm onSubmit={onSubmit} formData={formData} setFormData={setFormData} formControls={addProductFormElements} buttonText={ formData._id ? 'Edit Product' : 'Add Product'}></CommonForm>
+                            <CommonForm onSubmit={onSubmit} formData={formData} setFormData={setFormData} formControls={addProductFormElements} buttonText={ formData._id ? 'Edit Product' : 'Add Product'} buttonEnable={isFormValid()}></CommonForm>
                         </div>
                     </SheetDescription>
                 </SheetContent>

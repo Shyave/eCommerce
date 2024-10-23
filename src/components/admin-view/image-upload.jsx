@@ -1,12 +1,16 @@
 import { useEffect, useRef } from "react"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
-import { FileIcon, Loader, SendToBack, UploadCloudIcon, XIcon } from "lucide-react"
+import { FileIcon, Loader, UploadCloudIcon, XIcon } from "lucide-react"
 import { Button } from "../ui/button"
 import axios from "axios"
 import { Skeleton } from "../ui/skeleton"
+import { useToast } from "@/hooks/use-toast"
+const ADMIN_PRODUCT_URI = 'http://localhost:5001/api/admin/products/'
 
-const ProductImageUpload = ({imageFile, setImageFile, uploadedImageUrl, setUploadedImageUrl, imageLoadingState, setImageLoadingStat, isEditMode, productItem}) => {
+const ProductImageUpload = ({imageFile, setImageFile, uploadedImageUrl, setUploadedImageUrl, imageLoadingState, setImageLoadingState, isEditMode, productItem}) => {
+    const { toast } = useToast();
+
     const handleImageFile = (event) => {
         const selectedFile = event.target.files?.[0];
         if (selectedFile) setImageFile(selectedFile)
@@ -32,10 +36,17 @@ const ProductImageUpload = ({imageFile, setImageFile, uploadedImageUrl, setUploa
     async function uploadImageToCloudinary() {
         const data = new FormData();
         data.append('my_file', imageFile);
-        const response = await axios.post('http://localhost:5001/api/admin/products/upload-image', data);
+        const response = await axios.post(`${ADMIN_PRODUCT_URI}upload-image`, data);
         if (response) {
             setUploadedImageUrl(response?.data?.result?.url)
             setImageLoadingState(false)
+        } else {
+            setUploadedImageUrl(null)
+            setImageLoadingState(false)
+            toast({
+                variant: 'destructive',
+                title: 'Image uploading failed due to error'
+            })
         }
     }
 
@@ -45,8 +56,10 @@ const ProductImageUpload = ({imageFile, setImageFile, uploadedImageUrl, setUploa
     
 
     const inputRef = useRef(null);
+    console.log("imageFile = ", imageFile);
+    
     return (
-
+        
         <div className="w-full max-w-md mx-auto">
             <Label className="text-lg font-semibold mb-2 block">Upload Image</Label>
             <div className="border-2 border-dashed rounded-lg p-4" onDragOver={handleDragOver} onDrop={handleDrop}>
@@ -66,17 +79,23 @@ const ProductImageUpload = ({imageFile, setImageFile, uploadedImageUrl, setUploa
                             }
                         </>
                     ) : (
-                        imageLoadingState ? <Skeleton className="bg-gray-100 p-4 text-center">Uploading Image...</Skeleton> :
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <FileIcon className="w-8 h-8 text-primary mr-2"></FileIcon>
+                        imageLoadingState ? (
+                            <Skeleton className="flex flex-row gap-2 bg-gray-100 p-4 text-center">
+                                <Loader className="w-[20px] h-[20px]"></Loader>
+                                Uploading Image...
+                            </Skeleton>
+                        ) : (
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <FileIcon className="w-8 h-8 text-primary mr-2"></FileIcon>
+                                </div>
+                                <p className="text-sm font-medium">{imageFile?.name}</p>
+                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={handleRemoveImage}>
+                                    <XIcon className="w-4 h-4"></XIcon>
+                                    <span className="sr-only">Remove File</span>
+                                </Button>
                             </div>
-                            <p className="text-sm font-medium">{imageFile?.name}</p>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={handleRemoveImage}>
-                                <XIcon className="w-4 h-4"></XIcon>
-                                <span className="sr-only">Remove File</span>
-                            </Button>
-                        </div>
+                        )
                     )
                 }
             </div>

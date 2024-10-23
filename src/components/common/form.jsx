@@ -10,7 +10,7 @@ const types = {
     TEXTAREA: "textarea"
 }
 
-const CommonForm = ({formControls, formData, setFormData, onSubmit, buttonText}) => {
+const CommonForm = ({formControls, formData, setFormData, onSubmit, buttonText, buttonEnable}) => {
     const renderInputsByComponentType = (getControlItem) => {
         let element = null;
         const value = formData[getControlItem.name] || ''
@@ -90,6 +90,8 @@ const CommonForm = ({formControls, formData, setFormData, onSubmit, buttonText})
         return element;
     }
 
+    console.log("buttonEnable - ", buttonEnable);
+    
     return (
         <form onSubmit={onSubmit}>
             <div className="flex flex-col gap-6">
@@ -106,7 +108,7 @@ const CommonForm = ({formControls, formData, setFormData, onSubmit, buttonText})
                     })
                 }
             </div>
-            <Button type="submit" className="mt-6 w-full">{ buttonText || 'Submit' }</Button>
+            <Button type="submit" disabled={!buttonEnable} className={`${!buttonEnable} ? 'cursor-not-allowed : '' mt-6 w-full`}>{ buttonText || 'Submit' }</Button>
         </form>
     )
 }
