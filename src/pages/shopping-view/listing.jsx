@@ -7,19 +7,25 @@ import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { sortOptions } from "@/config";
-import { fetchAllFilteredProducts } from "@/store/shop/products-slice";
+import { fetchAllFilteredProducts, fetchProductDetails } from "@/store/shop/products-slice";
 import { useSearchParams } from "react-router-dom";
+import ProductDetails from "@/components/shopping-view/product-details";
 
 const ShoppingListing = () => {
     const dispatch = useDispatch();
-    const {productList} = useSelector(state => state.shoppingProducts);
+    const {productList, productDetails} = useSelector(state => state.shoppingProducts);
     const [filters, setFilters] = useState({});
     const [sort, setSort] = useState(null);
     const [searchParams, setSearchParams] = useSearchParams();
+    const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
 
     const handleSort = (value) => {
         setSort(value); 
     }
+
+    const handleGetProductDetails = (getCurrentProductId) => {
+        dispatch(fetchProductDetails(getCurrentProductId))
+    };
 
     const createSearchParamsHelper = (filters) => {
         const queryParams = [];
@@ -60,6 +66,12 @@ const ShoppingListing = () => {
         setFilters(JSON.parse(sessionStorage.getItem('filters')) || {});
     },[]);
 
+    useEffect(() => {
+        if (productDetails !== null) {
+            setOpenDetailsDialog(true);
+        }
+    }, [productDetails])
+
     // Fetch list of Products...
     useEffect(() => {
         if (filters !== null && sort !== null) 
@@ -80,7 +92,7 @@ const ShoppingListing = () => {
                 <div className="flex p-4 border-b items-center justify-between">
                     <h2 className="text-lg font-extrabold">All Products</h2>
                     <div className="flex items-center gap-4">
-                        <span className="text-muted-foreground">10 Products</span>
+                        <span className="text-muted-foreground">{productList?.data?.length} Products</span>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="flex items-center gap-1">
@@ -109,7 +121,7 @@ const ShoppingListing = () => {
                             {
                                 productList?.data?.length && productList.data.map((product) => {
                                     return (
-                                        <ShoppingProductTile key={product._id} product={product} ></ShoppingProductTile>
+                                        <ShoppingProductTile key={product._id} product={product} handleGetProductDetails={handleGetProductDetails} ></ShoppingProductTile>
                                     )
                                 }) 
                             }
@@ -117,6 +129,7 @@ const ShoppingListing = () => {
                     ) : <div className="flex w-full p-4 text-center font-semibold justify-center">No Product found!</div>
                 }
             </div>
+            <ProductDetails open={openDetailsDialog} setOpen={setOpenDetailsDialog} productDetails={productDetails} />
         </div>
     )
 };
