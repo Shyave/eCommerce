@@ -89,8 +89,6 @@ const CommonForm = ({formControls, formData, setFormData, onSubmit, buttonText, 
         }
         return element;
     }
-
-    console.log("buttonEnable - ", buttonEnable);
     
     return (
         <form onSubmit={onSubmit}>
